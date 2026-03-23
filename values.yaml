@@ -7,9 +7,13 @@ global:
   # Set to true if running in air-gapped mode.
   # Note: Ideally keep using karthiksiddu24/cisco_fraud_detection even for online to ensure version compatibility.
   airGapped: true
-  # If using a private registry, create a secret and list it here
-  imagePullSecrets: []
-  # - name: regcred
+  # Docker Hub pull secret — create it before installing:
+  #   kubectl create secret docker-registry regcred \
+  #     --docker-server=https://index.docker.io/v1/ \
+  #     --docker-username=<USER> --docker-password=<PASS> --docker-email=<EMAIL> \
+  #     -n fraud-detection
+  imagePullSecrets:
+    - name: regcred
 
 images:
   backend:
