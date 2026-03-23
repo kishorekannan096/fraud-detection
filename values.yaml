@@ -1,0 +1,100 @@
+# Default values for fraud-detection.
+# This is a YAML-formatted file.
+
+global:
+  imageRegistry: karthiksiddu24
+  imagePullPolicy: IfNotPresent
+  # Set to true if running in air-gapped mode.
+  # Note: Ideally keep using karthiksiddu24/cisco_fraud_detection even for online to ensure version compatibility.
+  airGapped: true
+  # If using a private registry, create a secret and list it here
+  imagePullSecrets: []
+  # - name: regcred
+
+images:
+  backend:
+    repository: cisco_fraud_detection
+    tag: backend
+  frontend:
+    repository: cisco_fraud_detection
+    tag: frontend
+  customerService:
+    repository: cisco_fraud_detection
+    tag: customer_service
+  morpheusPipeline:
+    repository: cisco_fraud_detection
+    tag: morpheus_pipeline
+  morpheusPriority:
+    repository: cisco_fraud_detection
+    tag: morpheus_priority
+  tritonBase:
+    repository: cisco_fraud_detection
+    tag: tritonserver_base
+  tritonModels:
+    repository: cisco_fraud_detection
+    tag: models
+  nimLLM:
+    repository: cisco_fraud_detection
+    tag: nim_llm
+  kafka:
+    repository: cisco_fraud_detection
+    tag: kafka
+  zookeeper:
+    repository: cisco_fraud_detection
+    tag: zookeeper
+  mongodb:
+    repository: cisco_fraud_detection
+    tag: mongodb
+
+# NGC API Key for NIM LLM (pass via --set ngcApiKey=<your-key>)
+# Leave empty to skip secret creation
+ngcApiKey: ""
+
+# GPU Configuration
+gpu:
+  enabled: true
+  resourceType: nvidia.com/gpu
+  morpheusCount: 1
+  tritonCount: 1
+  # NIM LLM is huge, check if you have enough GPUs.
+  # If running all on 1 node with 1 GPU, you might need MIG or time-slicing.
+  nimCount: 1
+
+# Persistence
+persistence:
+  mongodb: 10Gi
+  kafka: 5Gi
+
+# Service configuration — ClusterIP for OpenShift (use Routes for external access)
+service:
+  type: ClusterIP
+  frontendPort: 3000
+  backendPort: 8000
+  tritonHttpPort: 8005
+  tritonGrpcPort: 8006
+
+# OpenShift Routes
+routes:
+  frontend:
+    enabled: true
+    # host: fraud-detection.apps.your-cluster.example.com  # Leave empty for auto-generated
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+  backend:
+    enabled: true
+    # host: fraud-detection-api.apps.your-cluster.example.com
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+
+# Pod security context (OpenShift non-root)
+podSecurityContext:
+  runAsNonRoot: true
+
+# Container security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
