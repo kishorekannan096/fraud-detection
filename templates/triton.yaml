@@ -35,6 +35,9 @@ spec:
         imagePullPolicy: {{ .Values.global.imagePullPolicy }}
         {{- include "fraud-detection.containerSecurityContext" . | nindent 8 }}
         command: ["tritonserver", "--model-repository=/model_repo", "--exit-timeout-secs=6000", "--http-port=8005", "--grpc-port=8006", "--metrics-port=8007"]
+        env:
+        - name: HOME
+          value: /tmp
         ports:
         - containerPort: 8005
           name: http
