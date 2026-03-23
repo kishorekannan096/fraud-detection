@@ -33,9 +33,24 @@ spec:
         {{- end }}
         - name: NIM_GPU_MEMORY_UTILIZATION
           value: "0.5"
+        - name: NIM_CACHE_PATH
+          value: "/tmp/nim-cache"
+        - name: HOME
+          value: "/tmp/home"
+        - name: HF_HOME
+          value: "/tmp/hf-cache"
+        - name: TRANSFORMERS_CACHE
+          value: "/tmp/hf-cache"
         ports:
         - containerPort: 8000
           name: http
+        volumeMounts:
+        - name: nim-cache
+          mountPath: /tmp/nim-cache
+        - name: nim-home
+          mountPath: /tmp/home
+        - name: nim-tmp
+          mountPath: /tmp/hf-cache
         {{- if gt (int .Values.gpu.nimCount) 0 }}
         resources:
           limits:
@@ -44,13 +59,20 @@ spec:
         readinessProbe:
           tcpSocket:
             port: 8000
-          initialDelaySeconds: 30
+          initialDelaySeconds: 120
           periodSeconds: 10
         livenessProbe:
           tcpSocket:
             port: 8000
-          initialDelaySeconds: 60
+          initialDelaySeconds: 180
           periodSeconds: 15
+      volumes:
+      - name: nim-cache
+        emptyDir: {}
+      - name: nim-home
+        emptyDir: {}
+      - name: nim-tmp
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
