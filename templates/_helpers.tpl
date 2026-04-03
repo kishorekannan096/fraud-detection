@@ -73,8 +73,8 @@ securityContext:
 
 {{/*
 Node selector using existing NVIDIA GPU product labels.
-gpuType "l40s"    → nvidia.com/gpu.product=NVIDIA-L40S
-gpuType "rtx6000" → nvidia.com/gpu.product=NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition
+gpuType "l40s"    → nvidia.com/gpu.product=NVIDIA-L40S-SHARED  (wn1, wn2)
+gpuType "rtx6000" → nvidia.com/gpu.product=NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition-SHARED (c845)
 */}}
 {{- define "fraud-detection.nodeSelector" -}}
 nodeSelector:
@@ -84,3 +84,4 @@ nodeSelector:
   nvidia.com/gpu.product: NVIDIA-L40S-SHARED
   {{- end }}
 {{- end }}
+
