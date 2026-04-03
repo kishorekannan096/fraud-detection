@@ -19,7 +19,7 @@ spec:
       {{- include "fraud-detection.nodeSelector" . | nindent 6 }}
       {{- include "fraud-detection.imagePullSecrets" . | nindent 6 }}
       {{- include "fraud-detection.podSecurityContext" . | nindent 6 }}
-      # Init Container: Copies models from the read-only image to the shared volume
+      # Init Container 1: Copies models from the read-only image to the shared volume
       initContainers:
       - name: model-loader
         image: "{{ .Values.global.imageRegistry }}/{{ .Values.images.tritonModels.repository }}:{{ .Values.images.tritonModels.tag }}"
@@ -29,6 +29,25 @@ spec:
         volumeMounts:
         - name: model-repo
           mountPath: /model_repo
+      # Init Container 2: Pre-installs Python packages needed by model.py into a shared volume.
+      # This is required because Triton's Python backend stub runs in an isolated subprocess
+      # and may not inherit the system Python PATH from the pyt-python-py3 image.
+      - name: pip-installer
+        image: "{{ .Values.images.tritonBase.registry }}/{{ .Values.images.tritonBase.repository }}:{{ .Values.images.tritonBase.tag }}"
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        {{- include "fraud-detection.containerSecurityContext" . | nindent 8 }}
+        command:
+          - /bin/sh
+          - -c
+          - |
+            pip install --target /extra-python torch captum matplotlib --no-cache-dir --quiet || \
+            echo "WARNING: pip install failed, torch may already be available"
+        env:
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: extra-python
+          mountPath: /extra-python
 
       containers:
       - name: tritonserver
@@ -39,6 +58,9 @@ spec:
         env:
         - name: HOME
           value: /tmp
+        # Expose the pip-installed packages to Triton's Python backend subprocess
+        - name: PYTHONPATH
+          value: /extra-python
         ports:
         - containerPort: 8005
           name: http
@@ -76,6 +98,8 @@ spec:
           failureThreshold: 3
       volumes:
       - name: model-repo
+        emptyDir: {}
+      - name: extra-python
         emptyDir: {}
 ---
 apiVersion: v1

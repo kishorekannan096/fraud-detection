@@ -37,7 +37,7 @@ images:
   tritonBase:
     registry: nvcr.io/nvidia
     repository: tritonserver
-    tag: 26.03-py3
+    tag: 26.03-pyt-python-py3
   tritonModels:
     repository: cisco_fraud_detection
     tag: models
