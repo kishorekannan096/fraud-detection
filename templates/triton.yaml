@@ -52,18 +52,28 @@ spec:
         resources:
           limits:
             nvidia.com/gpu: {{ .Values.gpu.tritonCount }}
+        # startupProbe gives Triton time to load all models before liveness/readiness kick in.
+        # 60 failures × 10s = up to 10 minutes for startup.
+        startupProbe:
+          httpGet:
+            path: /v2/health/ready
+            port: 8005
+          failureThreshold: 60
+          periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /v2/health/ready
             port: 8005
-          initialDelaySeconds: 30
+          initialDelaySeconds: 10
           periodSeconds: 10
+          failureThreshold: 3
         livenessProbe:
           httpGet:
             path: /v2/health/live
             port: 8005
-          initialDelaySeconds: 60
+          initialDelaySeconds: 10
           periodSeconds: 15
+          failureThreshold: 3
       volumes:
       - name: model-repo
         emptyDir: {}
