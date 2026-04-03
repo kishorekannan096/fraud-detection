@@ -31,12 +31,14 @@ images:
   morpheusPriority:
     repository: cisco_fraud_detection
     tag: morpheus_priority
+  #tritonModels:
+  #  repository: cisco_fraud_detection
+  #  tag: models
   tritonBase:
-    repository: cisco_fraud_detection
-    tag: tritonserver_v2
-  tritonModels:
-    repository: cisco_fraud_detection
-    tag: models
+    registry: nvcr.io/nvidia
+    repository: tritonserver
+    tag: 26.03-trtllm-python-py3
+
   nimLLM:
     repository: cisco_fraud_detection
     tag: nim_llm
