@@ -70,3 +70,17 @@ securityContext:
     drop:
       - ALL
 {{- end }}
+
+{{/*
+Node selector using existing NVIDIA GPU product labels.
+gpuType "l40s"    → nvidia.com/gpu.product=NVIDIA-L40S
+gpuType "rtx6000" → nvidia.com/gpu.product=NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition
+*/}}
+{{- define "fraud-detection.nodeSelector" -}}
+nodeSelector:
+  {{- if eq .Values.nodeDeployment.gpuType "rtx6000" }}
+  nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition
+  {{- else }}
+  nvidia.com/gpu.product: NVIDIA-L40S
+  {{- end }}
+{{- end }}

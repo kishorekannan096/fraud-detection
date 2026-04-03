@@ -21,7 +21,7 @@ images:
     tag: backend
   frontend:
     repository: cisco_fraud_detection
-    tag: frontend
+    tag: frontend-v2
   customerService:
     repository: cisco_fraud_detection
     tag: customer_service
@@ -33,7 +33,7 @@ images:
     tag: morpheus_priority
   tritonBase:
     repository: cisco_fraud_detection
-    tag: tritonserver_base
+    tag: tritonserver_v2
   tritonModels:
     repository: cisco_fraud_detection
     tag: models
@@ -53,6 +53,13 @@ images:
 # NGC API Key for NIM LLM (pass via --set ngcApiKey=<your-key>)
 # Leave empty to skip secret creation
 ngcApiKey: ""
+
+# GPU Node Deployment Target
+# Set gpuType to "l40s" or "rtx6000" to deploy the entire stack on that GPU cluster.
+#   l40s    → targets nodes with label: nvidia.com/gpu.product=NVIDIA-L40S (wn1, wn2)
+#   rtx6000 → targets nodes with label: nvidia.com/gpu.product=NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition (c845)
+nodeDeployment:
+  gpuType: l40s
 
 # GPU Configuration
 gpu:
