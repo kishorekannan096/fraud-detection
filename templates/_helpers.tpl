@@ -79,8 +79,8 @@ gpuType "rtx6000" → nvidia.com/gpu.product=NVIDIA-RTX-PRO-6000-Blackwell-Serve
 {{- define "fraud-detection.nodeSelector" -}}
 nodeSelector:
   {{- if eq .Values.nodeDeployment.gpuType "rtx6000" }}
-  nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition
+  nvidia.com/gpu.product: NVIDIA-RTX-PRO-6000-Blackwell-Server-Edition-SHARED
   {{- else }}
-  nvidia.com/gpu.product: NVIDIA-L40S
+  nvidia.com/gpu.product: NVIDIA-L40S-SHARED
   {{- end }}
 {{- end }}
