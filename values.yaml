@@ -1,6 +1,5 @@
 # Default values for fraud-detection.
 # This is a YAML-formatted file.
-
 global:
   imageRegistry: karthiksiddu24
   imagePullPolicy: IfNotPresent
@@ -14,7 +13,6 @@ global:
   #     -n fraud-detection
   imagePullSecrets:
     - name: regcred
-
 images:
   backend:
     repository: cisco_fraud_detection
@@ -31,9 +29,6 @@ images:
   morpheusPriority:
     repository: cisco_fraud_detection
     tag: morpheus_priority
-  #tritonBase:
-  #  repository: cisco_fraud_detection
-  #  tag: tritonserver_v2
   tritonBase:
     registry: nvcr.io/nvidia
     repository: tritonserver
@@ -53,6 +48,18 @@ images:
   mongodb:
     repository: cisco_fraud_detection
     tag: mongodb
+
+# Python dependency versions for Triton pip-installer init container.
+# torch MUST be installed from the cu128 index (not PyPI) to support
+# Blackwell GPUs (sm_120). PyPI torch only supports up to sm_90.
+# To override for a different GPU (e.g. L40S with sm_89), you can
+# switch back to PyPI by removing the --index-url in triton.yaml
+# and pinning torch to 2.6.0 here.
+pythonDeps:
+  torchVersion: "2.7.0"
+  torchGeometricVersion: "2.6.0"
+  xgboostVersion: "2.1.4"
+  captumVersion: "0.7.0"
 
 # NGC API Key for NIM LLM (pass via --set ngcApiKey=<your-key>)
 # Leave empty to skip secret creation

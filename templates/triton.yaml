@@ -29,9 +29,16 @@ spec:
         volumeMounts:
         - name: model-repo
           mountPath: /model_repo
+
       # Init Container 2: Pre-installs Python packages needed by model.py into a shared volume.
-      # This is required because Triton's Python backend stub runs in an isolated subprocess
-      # and may not inherit the system Python PATH from the pyt-python-py3 image.
+      # Triton's Python backend stub (triton_python_backend_stub) runs as an isolated subprocess
+      # using /lib/x86_64-linux-gnu/libpython3.12.so.1.0 and initializes Python via
+      # PyConfig_InitPythonConfig — it does NOT inherit the container's environment.
+      # Packages must be installed to /extra-python and PYTHONPATH set on the main container.
+      #
+      # IMPORTANT: torch must be installed from the cu128 index to support Blackwell GPUs
+      # (sm_120, compute capability 12.0). The default PyPI torch only supports up to sm_90.
+      # cupy-cuda12x is required by xgboost for GPU-accelerated DMatrix operations.
       - name: pip-installer
         image: "{{ .Values.images.tritonBase.registry }}/{{ .Values.images.tritonBase.repository }}:{{ .Values.images.tritonBase.tag }}"
         imagePullPolicy: {{ .Values.global.imagePullPolicy }}
@@ -40,8 +47,19 @@ spec:
           - /bin/sh
           - -c
           - |
-            pip install --target /extra-python torch captum matplotlib --no-cache-dir --quiet || \
-            echo "WARNING: pip install failed, torch may already be available"
+            pip install \
+              --target /extra-python \
+              --index-url https://download.pytorch.org/whl/cu128 \
+              torch=={{ .Values.pythonDeps.torchVersion }} \
+            && pip install \
+              --target /extra-python \
+              --extra-index-url https://download.pytorch.org/whl/cu128 \
+              torch-geometric=={{ .Values.pythonDeps.torchGeometricVersion }} \
+              xgboost=={{ .Values.pythonDeps.xgboostVersion }} \
+              captum=={{ .Values.pythonDeps.captumVersion }} \
+              cupy-cuda12x \
+              matplotlib \
+              --no-cache-dir
         env:
         - name: HOME
           value: /tmp
@@ -58,7 +76,9 @@ spec:
         env:
         - name: HOME
           value: /tmp
-        # Expose the pip-installed packages to Triton's Python backend subprocess
+        # Expose the pip-installed packages to Triton's Python backend subprocess.
+        # The stub reads PYTHONPATH at runtime via PyConfig, so this must match
+        # the --target path used in the pip-installer init container above.
         - name: PYTHONPATH
           value: /extra-python
         ports:
@@ -71,6 +91,10 @@ spec:
         volumeMounts:
         - name: model-repo
           mountPath: /model_repo
+        # Mount extra-python so the main tritonserver container and its pb_stub
+        # subprocess can access the packages installed by pip-installer.
+        - name: extra-python
+          mountPath: /extra-python
         resources:
           limits:
             nvidia.com/gpu: {{ .Values.gpu.tritonCount }}
